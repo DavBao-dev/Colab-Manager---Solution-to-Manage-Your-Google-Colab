@@ -1,0 +1,1653 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Colab Manager</title>
+    <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --bg-primary: #1a1a2e;
+            --bg-secondary: #16213e;
+            --bg-card: #1e2a4a;
+            --bg-hover: #253456;
+            --bg-input: #0f1729;
+            --accent: #f9ab00;
+            --accent-hover: #fbc02d;
+            --accent-green: #34a853;
+            --accent-red: #ea4335;
+            --accent-blue: #4285f4;
+            --text-primary: #e8eaed;
+            --text-secondary: #9aa0a6;
+            --text-muted: #5f6368;
+            --border: #2d3a5c;
+            --shadow: rgba(0,0,0,0.3);
+            --radius: 12px;
+            --transition: 0.2s ease;
+        }
+
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: 'Inter', 'Google Sans', sans-serif;
+            background: var(--bg-primary);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            min-width: 280px;
+            background: var(--bg-secondary);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 16px;
+        }
+
+        .logo img {
+            width: 32px;
+            height: 32px;
+        }
+
+        .logo-icon {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, var(--accent), #ff6f00);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+        }
+
+        .logo h1 {
+            font-size: 18px;
+            font-weight: 700;
+            background: linear-gradient(135deg, var(--accent), #ff8f00);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .search-box {
+            position: relative;
+        }
+
+        .search-box i {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 10px 12px 10px 36px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            transition: border var(--transition);
+        }
+
+        .search-box input:focus {
+            border-color: var(--accent);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-muted);
+        }
+
+        /* Category list */
+        .categories {
+            padding: 12px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .category-title {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-muted);
+            padding: 4px 8px;
+            margin-bottom: 4px;
+        }
+
+        .category-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background var(--transition);
+            font-size: 13px;
+            color: var(--text-secondary);
+        }
+
+        .category-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .category-item.active {
+            background: var(--bg-hover);
+            color: var(--accent);
+        }
+
+        .category-item .count {
+            background: var(--bg-input);
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+
+        .category-item i {
+            width: 20px;
+            text-align: center;
+            margin-right: 8px;
+        }
+
+        /* Notebook list */
+        .notebook-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .notebook-list::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .notebook-list::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        .notebook-item {
+            display: flex;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all var(--transition);
+            margin-bottom: 2px;
+            gap: 10px;
+            position: relative;
+        }
+
+        .notebook-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .notebook-item.active {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+        }
+
+        .notebook-item .nb-icon {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .notebook-item .nb-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .notebook-item .nb-name {
+            font-size: 13px;
+            font-weight: 500;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .notebook-item .nb-category {
+            font-size: 11px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .notebook-item .nb-status {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            flex-shrink: 0;
+        }
+
+        .notebook-item .nb-status.open {
+            background: var(--accent-green);
+            box-shadow: 0 0 6px rgba(52, 168, 83, 0.5);
+        }
+
+        /* Sidebar footer */
+        .sidebar-footer {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        .btn-add {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, var(--accent), #ff8f00);
+            color: #1a1a2e;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all var(--transition);
+        }
+
+        .btn-add:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(249, 171, 0, 0.3);
+        }
+
+        /* Main Content */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .main-header {
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-secondary);
+        }
+
+        .main-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn-icon {
+            width: 36px;
+            height: 36px;
+            border: 1px solid var(--border);
+            background: var(--bg-card);
+            color: var(--text-secondary);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all var(--transition);
+        }
+
+        .btn-icon:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .btn-icon.danger:hover {
+            background: rgba(234, 67, 53, 0.15);
+            border-color: var(--accent-red);
+            color: var(--accent-red);
+        }
+
+        /* Tab bar for open notebooks */
+        .tab-bar {
+            display: flex;
+            background: var(--bg-secondary);
+            border-bottom: 1px solid var(--border);
+            overflow-x: auto;
+            min-height: 40px;
+        }
+
+        .tab-bar::-webkit-scrollbar {
+            height: 2px;
+        }
+
+        .tab-bar::-webkit-scrollbar-thumb {
+            background: var(--border);
+        }
+
+        .tab-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            font-size: 12px;
+            white-space: nowrap;
+            cursor: pointer;
+            border-right: 1px solid var(--border);
+            color: var(--text-secondary);
+            transition: all var(--transition);
+            max-width: 200px;
+        }
+
+        .tab-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .tab-item.active {
+            background: var(--bg-card);
+            color: var(--accent);
+            border-bottom: 2px solid var(--accent);
+        }
+
+        .tab-item .tab-name {
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tab-item .tab-close {
+            font-size: 10px;
+            padding: 2px 4px;
+            border-radius: 4px;
+            opacity: 0.5;
+            transition: all var(--transition);
+        }
+
+        .tab-item .tab-close:hover {
+            opacity: 1;
+            background: rgba(234, 67, 53, 0.2);
+            color: var(--accent-red);
+        }
+
+        .tab-item .tab-dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent-green);
+            flex-shrink: 0;
+        }
+
+        /* Main content area */
+        .content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Welcome screen */
+        .welcome-screen {
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            color: var(--text-secondary);
+            padding: 40px;
+        }
+
+        .welcome-screen .welcome-icon {
+            font-size: 80px;
+            margin-bottom: 24px;
+            opacity: 0.15;
+        }
+
+        .welcome-screen h2 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-primary);
+        }
+
+        .welcome-screen p {
+            font-size: 14px;
+            text-align: center;
+            max-width: 400px;
+            line-height: 1.6;
+            margin-bottom: 24px;
+        }
+
+        .shortcut-list {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            font-size: 13px;
+        }
+
+        .shortcut-list .shortcut {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .shortcut-list kbd {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-family: monospace;
+            min-width: 60px;
+            text-align: center;
+        }
+
+        /* Notebook detail panel */
+        .notebook-detail {
+            height: 100%;
+            padding: 40px;
+            overflow-y: auto;
+            display: none;
+        }
+
+        .notebook-detail.active {
+            display: block;
+        }
+
+        .detail-card {
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .detail-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .detail-icon {
+            width: 56px;
+            height: 56px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            flex-shrink: 0;
+        }
+
+        .detail-info h2 {
+            font-size: 22px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .detail-info .detail-url {
+            font-size: 12px;
+            color: var(--text-muted);
+            word-break: break-all;
+        }
+
+        .detail-actions {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 32px;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: all var(--transition);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--accent), #ff8f00);
+            color: #1a1a2e;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 15px rgba(249, 171, 0, 0.3);
+        }
+
+        .btn-secondary {
+            background: var(--bg-card);
+            color: var(--text-primary);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg-hover);
+        }
+
+        .btn-danger {
+            background: rgba(234, 67, 53, 0.1);
+            color: var(--accent-red);
+            border: 1px solid rgba(234, 67, 53, 0.3);
+        }
+
+        .btn-danger:hover {
+            background: rgba(234, 67, 53, 0.2);
+        }
+
+        .detail-meta {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 32px;
+        }
+
+        .meta-item {
+            background: var(--bg-card);
+            padding: 16px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .meta-item label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 6px;
+        }
+
+        .meta-item span {
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .detail-notes {
+            margin-top: 24px;
+        }
+
+        .detail-notes label {
+            font-size: 11px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 8px;
+        }
+
+        .detail-notes textarea {
+            width: 100%;
+            min-height: 120px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 14px;
+            color: var(--text-primary);
+            font-size: 13px;
+            font-family: 'Inter', sans-serif;
+            resize: vertical;
+            outline: none;
+            transition: border var(--transition);
+        }
+
+        .detail-notes textarea:focus {
+            border-color: var(--accent);
+        }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-overlay.show {
+            display: flex;
+        }
+
+        .modal {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            width: 480px;
+            max-width: 90vw;
+            box-shadow: 0 20px 60px var(--shadow);
+            animation: modalIn 0.2s ease;
+        }
+
+        @keyframes modalIn {
+            from { opacity: 0; transform: scale(0.95) translateY(10px); }
+            to { opacity: 1; transform: scale(1) translateY(0); }
+        }
+
+        .modal-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h3 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .modal-close {
+            background: none;
+            border: none;
+            color: var(--text-muted);
+            font-size: 18px;
+            cursor: pointer;
+            padding: 4px;
+            transition: color var(--transition);
+        }
+
+        .modal-close:hover {
+            color: var(--text-primary);
+        }
+
+        .modal-body {
+            padding: 24px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-group label {
+            display: block;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+        }
+
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-primary);
+            font-size: 13px;
+            outline: none;
+            transition: border var(--transition);
+        }
+
+        .form-group input:focus,
+        .form-group select:focus {
+            border-color: var(--accent);
+        }
+
+        .form-group select option {
+            background: var(--bg-secondary);
+        }
+
+        .form-group .color-options {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .color-option {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all var(--transition);
+        }
+
+        .color-option:hover {
+            transform: scale(1.1);
+        }
+
+        .color-option.selected {
+            border-color: white;
+            box-shadow: 0 0 0 2px var(--accent);
+        }
+
+        .modal-footer {
+            padding: 16px 24px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+        }
+
+        /* Toast notification */
+        .toast-container {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .toast {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 13px;
+            animation: toastIn 0.3s ease, toastOut 0.3s ease 2.7s forwards;
+            box-shadow: 0 8px 24px var(--shadow);
+        }
+
+        .toast.success { border-left: 3px solid var(--accent-green); }
+        .toast.error { border-left: 3px solid var(--accent-red); }
+        .toast.info { border-left: 3px solid var(--accent-blue); }
+
+        @keyframes toastIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        @keyframes toastOut {
+            from { opacity: 1; }
+            to { opacity: 0; transform: translateY(-20px); }
+        }
+
+        /* Context menu */
+        .context-menu {
+            position: fixed;
+            background: var(--bg-secondary);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 6px;
+            min-width: 180px;
+            box-shadow: 0 8px 24px var(--shadow);
+            z-index: 1500;
+            display: none;
+        }
+
+        .context-menu.show {
+            display: block;
+        }
+
+        .context-menu-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 13px;
+            cursor: pointer;
+            color: var(--text-secondary);
+            transition: all var(--transition);
+        }
+
+        .context-menu-item:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        .context-menu-item.danger:hover {
+            background: rgba(234, 67, 53, 0.1);
+            color: var(--accent-red);
+        }
+
+        .context-menu-item i {
+            width: 16px;
+            text-align: center;
+        }
+
+        .context-menu-divider {
+            height: 1px;
+            background: var(--border);
+            margin: 4px 0;
+        }
+
+        /* Color presets */
+        .color-blue { background: #4285f4; }
+        .color-green { background: #34a853; }
+        .color-orange { background: #f9ab00; }
+        .color-red { background: #ea4335; }
+        .color-purple { background: #a142f4; }
+        .color-teal { background: #24c1e0; }
+        .color-pink { background: #f538a0; }
+        .color-gray { background: #5f6368; }
+
+        /* Iframe container */
+        .iframe-container {
+            position: absolute;
+            inset: 0;
+            display: none;
+        }
+
+        .iframe-container.active {
+            display: block;
+        }
+
+        .iframe-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .iframe-fallback {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: var(--bg-primary);
+            padding: 40px;
+            text-align: center;
+        }
+
+        .iframe-fallback i {
+            font-size: 48px;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .iframe-fallback h3 {
+            font-size: 18px;
+            margin-bottom: 8px;
+        }
+
+        .iframe-fallback p {
+            color: var(--text-secondary);
+            font-size: 13px;
+            max-width: 400px;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+
+        /* Tips panel */
+        .tips-section {
+            margin-top: 32px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+        }
+
+        .tips-section h3 {
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--accent);
+        }
+
+        .tips-section ul {
+            list-style: none;
+            padding: 0;
+        }
+
+        .tips-section li {
+            font-size: 13px;
+            color: var(--text-secondary);
+            padding: 6px 0;
+            padding-left: 20px;
+            position: relative;
+            line-height: 1.5;
+        }
+
+        .tips-section li::before {
+            content: '•';
+            position: absolute;
+            left: 4px;
+            color: var(--accent);
+        }
+
+        .tips-section code {
+            background: var(--bg-input);
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 12px;
+        }
+
+        /* Empty state */
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+            color: var(--text-muted);
+            text-align: center;
+        }
+
+        .empty-state i {
+            font-size: 40px;
+            margin-bottom: 12px;
+            opacity: 0.4;
+        }
+
+        .empty-state p {
+            font-size: 13px;
+        }
+
+        /* Import/Export buttons */
+        .io-buttons {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn-small {
+            padding: 6px 10px;
+            font-size: 11px;
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            color: var(--text-secondary);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all var(--transition);
+        }
+
+        .btn-small:hover {
+            background: var(--bg-hover);
+            color: var(--text-primary);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .sidebar { width: 240px; min-width: 240px; }
+            .detail-meta { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- Sidebar -->
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="logo">
+                <div class="logo-icon"><i class="fas fa-flask"></i></div>
+                <h1>Colab Manager</h1>
+            </div>
+            <div class="search-box">
+                <i class="fas fa-search"></i>
+                <input type="text" id="searchInput" placeholder="Tìm notebook... (Ctrl+K)">
+            </div>
+        </div>
+
+        <div class="categories">
+            <div class="category-title">Danh mục</div>
+            <div id="categoryList">
+                <div class="category-item active" data-category="all" onclick="filterCategory('all')">
+                    <span><i class="fas fa-layer-group"></i> Tất cả</span>
+                    <span class="count" id="countAll">0</span>
+                </div>
+                <div class="category-item" data-category="running" onclick="filterCategory('running')">
+                    <span><i class="fas fa-play-circle"></i> Đang mở</span>
+                    <span class="count" id="countRunning">0</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="notebook-list" id="notebookList">
+            <div class="empty-state" id="emptyState">
+                <i class="fas fa-book-open"></i>
+                <p>Chưa có notebook nào<br>Nhấn nút bên dưới để thêm</p>
+            </div>
+        </div>
+
+        <div class="sidebar-footer">
+            <div style="display:flex;gap:6px;margin-bottom:8px;">
+                <button class="btn-small" style="flex:1" onclick="exportData()"><i class="fas fa-download"></i> Export</button>
+                <button class="btn-small" style="flex:1" onclick="importData()"><i class="fas fa-upload"></i> Import</button>
+            </div>
+            <button class="btn-add" onclick="openModal()">
+                <i class="fas fa-plus"></i> Thêm Notebook
+            </button>
+        </div>
+    </aside>
+
+    <!-- Main -->
+    <main class="main">
+        <div class="main-header" id="mainHeader">
+            <h2 id="mainTitle">Colab Manager</h2>
+            <div class="header-actions" id="headerActions" style="display:none;">
+                <button class="btn-icon" title="Mở trong tab mới" onclick="openCurrentInNewTab()">
+                    <i class="fas fa-external-link-alt"></i>
+                </button>
+                <button class="btn-icon" title="Copy URL" onclick="copyCurrentUrl()">
+                    <i class="fas fa-copy"></i>
+                </button>
+                <button class="btn-icon" title="Chỉnh sửa" onclick="editCurrentNotebook()">
+                    <i class="fas fa-pen"></i>
+                </button>
+                <button class="btn-icon danger" title="Xóa" onclick="deleteCurrentNotebook()">
+                    <i class="fas fa-trash"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Tab bar for open notebooks -->
+        <div class="tab-bar" id="tabBar" style="display:none;"></div>
+
+        <!-- Content area -->
+        <div class="content" id="contentArea">
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon"><i class="fas fa-rocket"></i></div>
+                <h2>Chào mừng đến Colab Manager!</h2>
+                <p>Quản lý tất cả Google Colab notebooks của bạn tại một nơi. Mở nhanh, chuyển đổi dễ dàng mà không cần reload.</p>
+                <div class="shortcut-list">
+                    <div class="shortcut"><kbd>Ctrl+N</kbd> <span>Thêm notebook mới</span></div>
+                    <div class="shortcut"><kbd>Ctrl+K</kbd> <span>Tìm kiếm nhanh</span></div>
+                    <div class="shortcut"><kbd>Ctrl+1-9</kbd> <span>Chuyển tab nhanh</span></div>
+                </div>
+
+                <div class="tips-section" style="margin-top:40px; text-align:left;">
+                    <h3><i class="fas fa-lightbulb"></i> Mẹo giảm reload Google Colab</h3>
+                    <ul>
+                        <li>Mở <code>chrome://flags/#automatic-tab-discarding</code> và chọn <strong>Disabled</strong> để Chrome không tự tắt tab</li>
+                        <li>Dùng extension <strong>"Auto Tab Discard"</strong> để whitelist các tab Colab</li>
+                        <li>Giữ số tab dưới 15 để Chrome không cần giải phóng RAM</li>
+                        <li>Dùng <strong>Colab Manager</strong> này để quản lý và mở nhanh notebooks!</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Add/Edit Modal -->
+    <div class="modal-overlay" id="modalOverlay">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">Thêm Notebook</h3>
+                <button class="modal-close" onclick="closeModal()">&times;</button>
+            </div>
+            <div class="modal-body">
+                <div class="form-group">
+                    <label>Tên Notebook *</label>
+                    <input type="text" id="inputName" placeholder="VD: CNN Image Classification">
+                </div>
+                <div class="form-group">
+                    <label>URL Google Colab *</label>
+                    <input type="text" id="inputUrl" placeholder="https://colab.research.google.com/drive/...">
+                </div>
+                <div class="form-group">
+                    <label>Danh mục</label>
+                    <input type="text" id="inputCategory" placeholder="VD: Deep Learning, NLP, Data Analysis" list="categorySuggestions">
+                    <datalist id="categorySuggestions"></datalist>
+                </div>
+                <div class="form-group">
+                    <label>Màu sắc</label>
+                    <div class="color-options">
+                        <div class="color-option color-blue selected" data-color="#4285f4" onclick="selectColor(this)"></div>
+                        <div class="color-option color-green" data-color="#34a853" onclick="selectColor(this)"></div>
+                        <div class="color-option color-orange" data-color="#f9ab00" onclick="selectColor(this)"></div>
+                        <div class="color-option color-red" data-color="#ea4335" onclick="selectColor(this)"></div>
+                        <div class="color-option color-purple" data-color="#a142f4" onclick="selectColor(this)"></div>
+                        <div class="color-option color-teal" data-color="#24c1e0" onclick="selectColor(this)"></div>
+                        <div class="color-option color-pink" data-color="#f538a0" onclick="selectColor(this)"></div>
+                        <div class="color-option color-gray" data-color="#5f6368" onclick="selectColor(this)"></div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Hủy</button>
+                <button class="btn btn-primary" id="modalSaveBtn" onclick="saveNotebook()">
+                    <i class="fas fa-save"></i> Lưu
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Context Menu -->
+    <div class="context-menu" id="contextMenu">
+        <div class="context-menu-item" onclick="ctxOpen()"><i class="fas fa-external-link-alt"></i> Mở notebook</div>
+        <div class="context-menu-item" onclick="ctxCopyUrl()"><i class="fas fa-copy"></i> Copy URL</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item" onclick="ctxEdit()"><i class="fas fa-pen"></i> Chỉnh sửa</div>
+        <div class="context-menu-item" onclick="ctxDuplicate()"><i class="fas fa-clone"></i> Nhân bản</div>
+        <div class="context-menu-divider"></div>
+        <div class="context-menu-item danger" onclick="ctxDelete()"><i class="fas fa-trash"></i> Xóa</div>
+    </div>
+
+    <!-- Toast container -->
+    <div class="toast-container" id="toastContainer"></div>
+
+    <!-- Hidden file input for import -->
+    <input type="file" id="fileInput" accept=".json" style="display:none" onchange="handleImport(event)">
+
+    <script>
+        let notebooks = JSON.parse(localStorage.getItem('colabNotebooks') || '[]');
+        let openWindows = {};
+        let selectedId = null;
+        let editingId = null;
+        let contextNotebookId = null;
+        let currentFilter = 'all';
+        let selectedColor = '#4285f4';
+
+        function generateId() {
+            return Date.now().toString(36) + Math.random().toString(36).substr(2, 5);
+        }
+
+        function save() {
+            localStorage.setItem('colabNotebooks', JSON.stringify(notebooks));
+        }
+
+        function toast(message, type = 'info') {
+            const container = document.getElementById('toastContainer');
+            const t = document.createElement('div');
+            t.className = `toast ${type}`;
+            const icons = { success: 'check-circle', error: 'exclamation-circle', info: 'info-circle' };
+            t.innerHTML = `<i class="fas fa-${icons[type]}"></i> ${message}`;
+            container.appendChild(t);
+            setTimeout(() => t.remove(), 3000);
+        }
+
+        // Render notebook list
+        function render() {
+            const list = document.getElementById('notebookList');
+            const search = document.getElementById('searchInput').value.toLowerCase();
+
+            let filtered = notebooks.filter(nb => {
+                if (search && !nb.name.toLowerCase().includes(search) && !nb.category.toLowerCase().includes(search)) return false;
+                if (currentFilter === 'running') return !!openWindows[nb.id];
+                if (currentFilter !== 'all') return nb.category === currentFilter;
+                return true;
+            });
+
+            let html = '';
+            if (filtered.length === 0) {
+                html = `<div class="empty-state"><i class="fas fa-search"></i><p>Không tìm thấy notebook nào</p></div>`;
+            } else {
+                filtered.forEach(nb => {
+                    const isOpen = !!openWindows[nb.id] && !openWindows[nb.id].closed;
+                    const isActive = nb.id === selectedId;
+                    html += `
+                        <div class="notebook-item ${isActive ? 'active' : ''}"
+                             data-id="${nb.id}"
+                             onclick="selectNotebook('${nb.id}')"
+                             ondblclick="launchNotebook('${nb.id}')"
+                             oncontextmenu="showContextMenu(event, '${nb.id}')">
+                            <div class="nb-icon" style="background:${nb.color}22; color:${nb.color}">
+                                <i class="fas fa-file-code"></i>
+                            </div>
+                            <div class="nb-info">
+                                <div class="nb-name">${nb.name}</div>
+                                <div class="nb-category">${nb.category || 'Chưa phân loại'}</div>
+                            </div>
+                            ${isOpen ? '<div class="nb-status open" title="Đang mở"></div>' : ''}
+                        </div>
+                    `;
+                });
+            }
+            list.innerHTML = html;
+
+            // Update counts
+            document.getElementById('countAll').textContent = notebooks.length;
+            const runCount = notebooks.filter(nb => openWindows[nb.id] && !openWindows[nb.id].closed).length;
+            document.getElementById('countRunning').textContent = runCount;
+
+            // Update category suggestions
+            updateCategorySuggestions();
+            renderTabs();
+        }
+
+        function updateCategorySuggestions() {
+            const cats = [...new Set(notebooks.map(nb => nb.category).filter(Boolean))];
+            const dl = document.getElementById('categorySuggestions');
+            dl.innerHTML = cats.map(c => `<option value="${c}">`).join('');
+        }
+
+        // Select notebook
+        function selectNotebook(id) {
+            selectedId = id;
+            const nb = notebooks.find(n => n.id === id);
+            if (!nb) return;
+
+            document.getElementById('headerActions').style.display = 'flex';
+            document.getElementById('mainTitle').textContent = nb.name;
+
+            const content = document.getElementById('contentArea');
+            document.getElementById('welcomeScreen').style.display = 'none';
+
+            let detail = document.getElementById('detail-' + id);
+            document.querySelectorAll('.notebook-detail').forEach(d => d.classList.remove('active'));
+
+            if (!detail) {
+                detail = document.createElement('div');
+                detail.className = 'notebook-detail';
+                detail.id = 'detail-' + id;
+                detail.innerHTML = buildDetailHTML(nb);
+                content.appendChild(detail);
+            } else {
+                detail.innerHTML = buildDetailHTML(nb);
+            }
+            detail.classList.add('active');
+            render();
+        }
+
+        function buildDetailHTML(nb) {
+            const isOpen = openWindows[nb.id] && !openWindows[nb.id].closed;
+            return `
+                <div class="detail-card">
+                    <div class="detail-header">
+                        <div class="detail-icon" style="background:${nb.color}22; color:${nb.color}">
+                            <i class="fas fa-file-code"></i>
+                        </div>
+                        <div class="detail-info">
+                            <h2>${nb.name}</h2>
+                            <div class="detail-url">${nb.url}</div>
+                        </div>
+                    </div>
+                    <div class="detail-actions">
+                        <button class="btn btn-primary" onclick="launchNotebook('${nb.id}')">
+                            <i class="fas ${isOpen ? 'fa-eye' : 'fa-rocket'}"></i>
+                            ${isOpen ? 'Chuyển tới Notebook' : 'Mở Notebook'}
+                        </button>
+                        <button class="btn btn-secondary" onclick="openInNewTab('${nb.id}')">
+                            <i class="fas fa-external-link-alt"></i> Mở tab mới
+                        </button>
+                        <button class="btn btn-secondary" onclick="copyUrl('${nb.id}')">
+                            <i class="fas fa-copy"></i> Copy URL
+                        </button>
+                    </div>
+                    <div class="detail-meta">
+                        <div class="meta-item">
+                            <label>Danh mục</label>
+                            <span>${nb.category || 'Chưa phân loại'}</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>Trạng thái</label>
+                            <span style="color: ${isOpen ? 'var(--accent-green)' : 'var(--text-muted)'}">
+                                <i class="fas fa-circle" style="font-size:8px; margin-right:6px;"></i>
+                                ${isOpen ? 'Đang mở' : 'Đã đóng'}
+                            </span>
+                        </div>
+                        <div class="meta-item">
+                            <label>Ngày thêm</label>
+                            <span>${new Date(nb.createdAt).toLocaleDateString('vi-VN')}</span>
+                        </div>
+                        <div class="meta-item">
+                            <label>Lần mở cuối</label>
+                            <span>${nb.lastOpened ? new Date(nb.lastOpened).toLocaleDateString('vi-VN', {hour:'2-digit', minute:'2-digit'}) : 'Chưa mở'}</span>
+                        </div>
+                    </div>
+                    <div class="detail-notes">
+                        <label>Ghi chú</label>
+                        <textarea placeholder="Thêm ghi chú cho notebook này..."
+                            onchange="updateNotes('${nb.id}', this.value)">${nb.notes || ''}</textarea>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Launch notebook in a managed window
+        function launchNotebook(id) {
+            const nb = notebooks.find(n => n.id === id);
+            if (!nb) return;
+
+            if (openWindows[id] && !openWindows[id].closed) {
+                openWindows[id].focus();
+                toast(`Đã chuyển tới "${nb.name}"`, 'success');
+            } else {
+                openWindows[id] = window.open(nb.url, 'colab_' + id);
+                toast(`Đã mở "${nb.name}"`, 'success');
+            }
+
+            nb.lastOpened = new Date().toISOString();
+            save();
+            selectNotebook(id);
+        }
+
+        function openInNewTab(id) {
+            const nb = notebooks.find(n => n.id === id);
+            if (!nb) return;
+            window.open(nb.url, '_blank');
+            nb.lastOpened = new Date().toISOString();
+            save();
+            toast(`Đã mở "${nb.name}" trong tab mới`, 'info');
+        }
+
+        function copyUrl(id) {
+            const nb = notebooks.find(n => n.id === id);
+            if (!nb) return;
+            navigator.clipboard.writeText(nb.url).then(() => {
+                toast('Đã copy URL!', 'success');
+            });
+        }
+
+        // Tab bar rendering
+        function renderTabs() {
+            const bar = document.getElementById('tabBar');
+            const openNbs = notebooks.filter(nb => openWindows[nb.id] && !openWindows[nb.id].closed);
+
+            if (openNbs.length === 0) {
+                bar.style.display = 'none';
+                return;
+            }
+
+            bar.style.display = 'flex';
+            bar.innerHTML = openNbs.map(nb => `
+                <div class="tab-item ${nb.id === selectedId ? 'active' : ''}" onclick="launchNotebook('${nb.id}')">
+                    <div class="tab-dot"></div>
+                    <span class="tab-name">${nb.name}</span>
+                    <span class="tab-close" onclick="event.stopPropagation(); closeWindow('${nb.id}')">
+                        <i class="fas fa-times"></i>
+                    </span>
+                </div>
+            `).join('');
+        }
+
+        function closeWindow(id) {
+            if (openWindows[id] && !openWindows[id].closed) {
+                openWindows[id].close();
+            }
+            delete openWindows[id];
+            render();
+            if (selectedId === id) selectNotebook(id);
+        }
+
+        // Modal functions
+        function openModal(id = null) {
+            editingId = id;
+            document.getElementById('modalOverlay').classList.add('show');
+            document.getElementById('modalTitle').textContent = id ? 'Chỉnh sửa Notebook' : 'Thêm Notebook';
+
+            if (id) {
+                const nb = notebooks.find(n => n.id === id);
+                document.getElementById('inputName').value = nb.name;
+                document.getElementById('inputUrl').value = nb.url;
+                document.getElementById('inputCategory').value = nb.category || '';
+                selectColorByValue(nb.color);
+            } else {
+                document.getElementById('inputName').value = '';
+                document.getElementById('inputUrl').value = '';
+                document.getElementById('inputCategory').value = '';
+                selectColorByValue('#4285f4');
+            }
+
+            setTimeout(() => document.getElementById('inputName').focus(), 100);
+        }
+
+        function closeModal() {
+            document.getElementById('modalOverlay').classList.remove('show');
+            editingId = null;
+        }
+
+        function selectColor(el) {
+            document.querySelectorAll('.color-option').forEach(c => c.classList.remove('selected'));
+            el.classList.add('selected');
+            selectedColor = el.dataset.color;
+        }
+
+        function selectColorByValue(color) {
+            selectedColor = color;
+            document.querySelectorAll('.color-option').forEach(c => {
+                c.classList.toggle('selected', c.dataset.color === color);
+            });
+        }
+
+        function saveNotebook() {
+            const name = document.getElementById('inputName').value.trim();
+            const url = document.getElementById('inputUrl').value.trim();
+            const category = document.getElementById('inputCategory').value.trim();
+
+            if (!name || !url) {
+                toast('Vui lòng nhập tên và URL!', 'error');
+                return;
+            }
+
+            if (!url.includes('colab') && !url.includes('google') && !url.includes('jupyter') && !url.includes('http')) {
+                toast('URL không hợp lệ!', 'error');
+                return;
+            }
+
+            if (editingId) {
+                const nb = notebooks.find(n => n.id === editingId);
+                nb.name = name;
+                nb.url = url;
+                nb.category = category;
+                nb.color = selectedColor;
+                toast(`Đã cập nhật "${name}"`, 'success');
+            } else {
+                notebooks.push({
+                    id: generateId(),
+                    name,
+                    url,
+                    category,
+                    color: selectedColor,
+                    notes: '',
+                    createdAt: new Date().toISOString(),
+                    lastOpened: null
+                });
+                toast(`Đã thêm "${name}"`, 'success');
+            }
+
+            save();
+            closeModal();
+            render();
+        }
+
+        function updateNotes(id, notes) {
+            const nb = notebooks.find(n => n.id === id);
+            if (nb) {
+                nb.notes = notes;
+                save();
+            }
+        }
+
+        // Header action buttons
+        function openCurrentInNewTab() { if (selectedId) openInNewTab(selectedId); }
+        function copyCurrentUrl() { if (selectedId) copyUrl(selectedId); }
+        function editCurrentNotebook() { if (selectedId) openModal(selectedId); }
+        function deleteCurrentNotebook() {
+            if (!selectedId) return;
+            const nb = notebooks.find(n => n.id === selectedId);
+            if (confirm(`Bạn có chắc muốn xóa "${nb.name}"?`)) {
+                notebooks = notebooks.filter(n => n.id !== selectedId);
+                if (openWindows[selectedId]) {
+                    delete openWindows[selectedId];
+                }
+                const detail = document.getElementById('detail-' + selectedId);
+                if (detail) detail.remove();
+                selectedId = null;
+                document.getElementById('headerActions').style.display = 'none';
+                document.getElementById('mainTitle').textContent = 'Colab Manager';
+                document.getElementById('welcomeScreen').style.display = 'flex';
+                save();
+                render();
+                toast(`Đã xóa "${nb.name}"`, 'success');
+            }
+        }
+
+        // Context menu
+        function showContextMenu(e, id) {
+            e.preventDefault();
+            contextNotebookId = id;
+            const menu = document.getElementById('contextMenu');
+            menu.style.left = e.clientX + 'px';
+            menu.style.top = e.clientY + 'px';
+            menu.classList.add('show');
+        }
+
+        function hideContextMenu() {
+            document.getElementById('contextMenu').classList.remove('show');
+        }
+
+        function ctxOpen() { hideContextMenu(); launchNotebook(contextNotebookId); }
+        function ctxCopyUrl() { hideContextMenu(); copyUrl(contextNotebookId); }
+        function ctxEdit() { hideContextMenu(); openModal(contextNotebookId); }
+        function ctxDuplicate() {
+            hideContextMenu();
+            const nb = notebooks.find(n => n.id === contextNotebookId);
+            if (nb) {
+                notebooks.push({
+                    ...nb,
+                    id: generateId(),
+                    name: nb.name + ' (copy)',
+                    createdAt: new Date().toISOString(),
+                    lastOpened: null
+                });
+                save();
+                render();
+                toast(`Đã nhân bản "${nb.name}"`, 'success');
+            }
+        }
+        function ctxDelete() {
+            hideContextMenu();
+            selectedId = contextNotebookId;
+            deleteCurrentNotebook();
+        }
+
+        // Filter by category
+        function filterCategory(cat) {
+            currentFilter = cat;
+            document.querySelectorAll('.category-item').forEach(el => {
+                el.classList.toggle('active', el.dataset.category === cat);
+            });
+            render();
+        }
+
+        // Import / Export
+        function exportData() {
+            const data = JSON.stringify(notebooks, null, 2);
+            const blob = new Blob([data], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `colab_manager_backup_${new Date().toISOString().slice(0,10)}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            toast('Đã xuất dữ liệu!', 'success');
+        }
+
+        function importData() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleImport(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = function(ev) {
+                try {
+                    const data = JSON.parse(ev.target.result);
+                    if (Array.isArray(data)) {
+                        const count = data.length;
+                        notebooks = [...notebooks, ...data.map(nb => ({ ...nb, id: generateId() }))];
+                        save();
+                        render();
+                        toast(`Đã import ${count} notebooks!`, 'success');
+                    } else {
+                        toast('File không hợp lệ!', 'error');
+                    }
+                } catch {
+                    toast('Lỗi đọc file!', 'error');
+                }
+            };
+            reader.readAsText(file);
+            e.target.value = '';
+        }
+
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            if (e.ctrlKey && e.key === 'n') {
+                e.preventDefault();
+                openModal();
+            }
+            if (e.ctrlKey && e.key === 'k') {
+                e.preventDefault();
+                document.getElementById('searchInput').focus();
+            }
+            if (e.key === 'Escape') {
+                closeModal();
+                hideContextMenu();
+            }
+            // Ctrl+1-9 to switch to open notebooks
+            if (e.ctrlKey && e.key >= '1' && e.key <= '9') {
+                const openNbs = notebooks.filter(nb => openWindows[nb.id] && !openWindows[nb.id].closed);
+                const idx = parseInt(e.key) - 1;
+                if (openNbs[idx]) {
+                    e.preventDefault();
+                    launchNotebook(openNbs[idx].id);
+                }
+            }
+        });
+
+        // Click outside to close context menu
+        document.addEventListener('click', hideContextMenu);
+
+        // Search
+        document.getElementById('searchInput').addEventListener('input', render);
+
+        // Periodically check if windows are still open
+        setInterval(() => {
+            let changed = false;
+            for (const id in openWindows) {
+                if (openWindows[id].closed) {
+                    delete openWindows[id];
+                    changed = true;
+                }
+            }
+            if (changed) render();
+        }, 2000);
+
+        // Modal overlay click to close
+        document.getElementById('modalOverlay').addEventListener('click', function(e) {
+            if (e.target === this) closeModal();
+        });
+
+        // Enter key in modal inputs
+        document.getElementById('inputUrl').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') saveNotebook();
+        });
+        document.getElementById('inputCategory').addEventListener('keydown', function(e) {
+            if (e.key === 'Enter') saveNotebook();
+        });
+
+        // Auto-extract name from Colab URL
+        document.getElementById('inputUrl').addEventListener('paste', function(e) {
+            setTimeout(() => {
+                const url = this.value;
+                const nameInput = document.getElementById('inputName');
+                if (!nameInput.value && url.includes('colab.research.google.com')) {
+                    nameInput.value = 'Colab Notebook';
+                    nameInput.select();
+                }
+            }, 100);
+        });
+
+        // Initial render
+        render();
+    </script>
+</body>
+</html>
